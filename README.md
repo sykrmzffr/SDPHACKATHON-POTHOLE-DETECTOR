@@ -2,6 +2,8 @@
 
 **Sime Darby Property University Hackathon 2026, People track** (Safety & Security · Getting Around)
 
+**Live prototype:** [estate dashboard](https://sykrmzffr.github.io/SDPHACKATHON-POTHOLE-DETECTOR/) · [phone drive mode](https://sykrmzffr.github.io/SDPHACKATHON-POTHOLE-DETECTOR/drive.html) · [resident survey insights](https://sykrmzffr.github.io/SDPHACKATHON-POTHOLE-DETECTOR/survey.html)
+
 JalanSense turns the vehicles a township already runs into road inspectors: shuttles, security patrols, waste trucks and landscaping vans. Each vehicle carries a low-cost IoT node, or a phone. The node feels every jolt and uses on-device machine learning to decide whether it was a **pothole**, a **speed bump** or just a **rough surface**. It then sends real potholes, with GPS location and severity, to an estate-operations dashboard. The dashboard turns repeated hits into verified hotspots, ranks them by repair priority, and tracks each one from detection through work order to repair.
 
 ## Why
@@ -37,7 +39,7 @@ JalanSense turns the vehicles a township already runs into road inspectors: shut
 | `firmware/jalansense_node/` | ESP32 sketch, feature extraction (C), exported edge model | Syakir |
 | `ml/` | Synthetic data generator, feature extraction, training, model export | Zeeq |
 | `backend/` | FastAPI and SQLite: ingest, clustering, priority, work-order status | Zeeq |
-| `web/` | Estate dashboard (`index.html`) and phone drive mode (`drive.html`) | Zeeq |
+| `web/` | Estate dashboard (`index.html`), phone drive mode (`drive.html`), survey insights (`survey.html`), bundled OpenStreetMap road data (`data/roads.json`) | Zeeq |
 | `docs/` | Submission text, video script, survey, pilot plan | Faris |
 | `survey/` | Google Form builder script (`create_form.gs`) and MOCK response generator | Faris |
 
@@ -87,5 +89,5 @@ A production node would add a 4G/LTE-M module, or use the vehicle's existing tel
 ## Resident survey
 
 - `survey/create_form.gs`: paste into script.google.com and run `createSurvey`. It creates the Google Form and its response sheet in your Drive and logs the share link.
-- `web/survey.html`: survey insights dashboard. It opens with **mock** data (`web/data/survey_sample.csv`, 150 invented responses, clearly bannered). Use **Load Google Forms CSV** to view real responses (Sheets → File → Download → CSV).
+- `web/survey.html`: survey insights dashboard. It opens with **mock** data (`web/data/survey_mock.csv`, 150 invented responses, clearly bannered). Use **Load Google Forms CSV** to view real responses (Sheets → File → Download → CSV).
 - Never quote the mock numbers as findings.
