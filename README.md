@@ -89,5 +89,5 @@ A production node would add a 4G/LTE-M module, or use the vehicle's existing tel
 ## Resident survey
 
 - `survey/create_form.gs`: paste into script.google.com and run `createSurvey`. It creates the Google Form and its response sheet in your Drive and logs the share link.
-- `web/survey.html`: survey insights dashboard. It opens with **mock** data (`web/data/survey_mock.csv`, 150 invented responses, clearly bannered). Use **Load Google Forms CSV** to view real responses (Sheets → File → Download → CSV).
+- `web/survey.html`: survey insights dashboard. It opens with **mock** data (`web/data/survey_sample.csv`, 150 invented responses, clearly bannered). Use **Load Google Forms CSV** to view real responses (Sheets → File → Download → CSV).
 - Never quote the mock numbers as findings.
