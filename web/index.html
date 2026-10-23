@@ -115,7 +115,7 @@ aside h2{font-size:14px;margin:0;padding:12px 14px;border-bottom:1px solid var(-
 </main>
 
 <script src="vendor/leaflet/leaflet.js"></script>
-<script src="js/engine.js?v=2"></script>
+<script src="js/engine.js"></script>
 <script>
 (async function(){
   const JS = window.JalanSense;
@@ -125,8 +125,8 @@ aside h2{font-size:14px;margin:0;padding:12px 14px;border-bottom:1px solid var(-
   document.getElementById("mode").textContent = store.mode === "api" ? "live API" : "demo · browser storage";
 
   const map = L.map("map", { zoomControl: true }).setView(JS.ELMINA, 15);
-  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    maxZoom: 19, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+  L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
+    maxZoom: 19, attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
   }).addTo(map);
 
   const roadLayer = L.layerGroup().addTo(map);

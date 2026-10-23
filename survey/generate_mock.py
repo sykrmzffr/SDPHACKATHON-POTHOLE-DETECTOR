@@ -15,7 +15,7 @@ from datetime import datetime, timedelta
 
 random.seed(2026)
 N = 150
-OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "web", "data", "survey_mock.csv")
+OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "web", "data", "survey_sample.csv")
 
 COLS = [
     "Timestamp", "Consent", "Township", "Area or precinct", "Your connection to the township",

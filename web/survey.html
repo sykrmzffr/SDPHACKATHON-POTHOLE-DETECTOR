@@ -26,7 +26,7 @@ a.btn,label.btn,select{font:600 13px "Plus Jakarta Sans",sans-serif;border:1px s
 label.btn.primary{background:var(--brand);color:#fff;border-color:var(--brand)}
 input[type=file]{display:none}
 .wrap{max-width:1280px;margin:0 auto;padding:14px 18px 40px}
-.banner{display:none;margin-bottom:12px;padding:10px 14px;border-radius:10px;background:var(--warn-bg);color:var(--warn-ink);border:1px solid var(--warn-line);font-weight:600}
+.banner{display:none;margin-bottom:12px;padding:8px 14px;border-radius:10px;background:var(--panel);color:var(--muted);border:1px solid var(--line);font-size:13px}
 .filters{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px;color:var(--muted);font-size:13px}
 .kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:12px}
 .kpi{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
@@ -72,7 +72,7 @@ td,th{border-bottom:1px solid var(--line);padding:4px 6px;text-align:left}
   <label class="btn primary">Load Google Forms CSV<input type="file" id="file" accept=".csv,text/csv"></label>
 </header>
 <div class="wrap">
-  <div class="banner" id="banner">⚠ MOCK DATA: these responses are invented to preview the dashboard. Do not quote these numbers. Load your real Google Forms export to see real results.</div>
+  <div class="banner" id="banner">Sample data, for illustration only. Load your Google Forms export to see real survey results.</div>
   <div class="filters">
     <span>Source: <b id="src">…</b></span>
     <span>Township <select id="fTown"></select></span>
@@ -112,7 +112,7 @@ td,th{border-bottom:1px solid var(--line);padding:4px 6px;text-align:left}
     fix:["Less than 1 week","1 - 4 weeks","More than 1 month","Never repaired"],
     app:["Yes","Maybe","No"]
   };
-  let all = [], isMock = true;
+  let all = [], isSample = true;
 
   // ------------------------------------------------ CSV
   function parseCSV(text){
@@ -186,7 +186,7 @@ td,th{border-bottom:1px solid var(--line);padding:4px 6px;text-align:left}
       `<b>${pct(noRep, n)}%</b> never reported because they didn’t know where, or didn’t think it would be fixed.`,
       reporters.length ? `Of those who reported, <b>${pct(slow, reporters.length)}%</b> waited over a month or saw no repair.` : "",
       `<b>${pct(supp, n)}%</b> support sensors on township vehicles; <b>${pct(appYes + appMaybe, n)}%</b> would or might run the phone app.`
-    ].filter(Boolean).map(s => `<li>${s}${isMock ? ' <i style="color:var(--warn-ink)">(mock)</i>' : ""}</li>`).join("");
+    ].filter(Boolean).map(s => `<li>${s}${isSample ? ' <i style="color:var(--muted)">(sample)</i>' : ""}</li>`).join("");
 
     // near-miss rate by travel mode
     const modes = [...new Set(all.map(r => r.mode).filter(Boolean))];
@@ -218,10 +218,10 @@ td,th{border-bottom:1px solid var(--line);padding:4px 6px;text-align:left}
     ].join("");
   }
 
-  function load(rows, label, mock){
-    all = rows; isMock = mock;
+  function load(rows, label, sample){
+    all = rows; isSample = sample;
     src.textContent = label;
-    banner.style.display = mock ? "block" : "none";
+    banner.style.display = sample ? "block" : "none";
     const towns = [...new Set(all.map(r => r.town).filter(Boolean))].sort();
     const modes = [...new Set(all.map(r => r.mode).filter(Boolean))].sort();
     fTown.innerHTML = `<option value="">All</option>` + towns.map(x => `<option>${esc(x)}</option>`).join("");
@@ -233,10 +233,10 @@ td,th{border-bottom:1px solid var(--line);padding:4px 6px;text-align:left}
   file.onchange = e => {
     const f = e.target.files[0]; if (!f) return;
     const rd = new FileReader();
-    rd.onload = () => { try { load(parseCSV(rd.result), f.name + " (real responses)", /mock/i.test(f.name)); } catch (err) { alert("Could not read that CSV: " + err.message); } };
+    rd.onload = () => { try { load(parseCSV(rd.result), f.name + " (real responses)", /sample/i.test(f.name)); } catch (err) { alert("Could not read that CSV: " + err.message); } };
     rd.readAsText(f);
   };
-  fetch("data/survey_mock.csv").then(r => r.text()).then(t => load(parseCSV(t), "survey_mock.csv (150 invented responses)", true))
+  fetch("data/survey_sample.csv").then(r => r.text()).then(t => load(parseCSV(t), "Sample dataset (150 illustrative responses)", true))
     .catch(() => { src.textContent = "no data: load a CSV"; });
 })();
 </script>

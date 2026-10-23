@@ -30,7 +30,7 @@ Upload the PDF exported from the pitch deck.
 Upload to YouTube as **Unlisted**, not Private, so judges can open it. Paste the link. See `video-script.md`.
 
 ## Prototype Link
-https://sykrmzffr.github.io/SDPHACKATHON-POTHOLE-DETECTOR/
+GitHub Pages URL of `/web`, for example `https://sykrmzffr.github.io/SDPHACKATHON-POTHOLE-DETECTOR/`. See HANDOFF.md, step Z3.
 
 ## Github Repository
 https://github.com/sykrmzffr/SDPHACKATHON-POTHOLE-DETECTOR

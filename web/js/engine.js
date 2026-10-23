@@ -192,11 +192,6 @@
   ];
 
   async function fetchRoads() {
-    // Bundled OpenStreetMap snapshot first, so the demo never depends on Overpass being up
-    try {
-      const b = await (await fetch("data/roads.json")).json();
-      if (b && b.length > 20) return { roads: b, real: true };
-    } catch (e) { }
     const cacheKey = "jalansense_roads_v1";
     try { const c = JSON.parse(localStorage.getItem(cacheKey)); if (c && c.length) return { roads: c, real: true }; } catch (e) { }
     const q = '[out:json][timeout:20];way["highway"~"^(primary|secondary|tertiary|residential|unclassified)$"](3.180,101.478,3.218,101.522);out geom;';
