@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JalanSense Estate Ops</title>
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f3f1ec; --panel:#ffffff; --ink:#14202e; --muted:#5f6b78; --line:#e2ded5;
+  --brand:#0f5c4c; --brand-2:#e8f2ef; --amber:#e39b1b; --red:#c8372d; --green:#2e8b57; --blue:#2f6db5;
+  --s1:#9bb7a9; --s2:#d9b84a; --s3:#e39b1b; --s4:#d9622b; --s5:#b8261d;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0e141b; --panel:#151d26; --ink:#e7ecf1; --muted:#93a0ad; --line:#26313d; --brand:#3fb39a; --brand-2:#14302a;
+}}
+:root[data-theme="dark"]{ --bg:#0e141b; --panel:#151d26; --ink:#e7ecf1; --muted:#93a0ad; --line:#26313d; --brand:#3fb39a; --brand-2:#14302a; }
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font:14px/1.45 "Plus Jakarta Sans",system-ui,sans-serif;display:flex;flex-direction:column}
+header{display:flex;align-items:center;gap:14px;padding:12px 18px;background:var(--panel);border-bottom:1px solid var(--line);flex-wrap:wrap}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:17px;letter-spacing:-.2px}
+.logo svg{flex:none}
+.sub{color:var(--muted);font-weight:500;font-size:13px}
+.chip{font:500 11px "JetBrains Mono",monospace;padding:3px 8px;border-radius:99px;background:var(--brand-2);color:var(--brand);text-transform:uppercase;letter-spacing:.4px}
+.spacer{flex:1}
+button,.btn{font:600 13px "Plus Jakarta Sans",sans-serif;border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:7px 12px;border-radius:8px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+button:hover,.btn:hover{border-color:var(--brand)}
+button.primary{background:var(--brand);color:#fff;border-color:var(--brand)}
+.kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;padding:12px 18px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 14px}
+.kpi .v{font-size:24px;font-weight:800;letter-spacing:-.5px}
+.kpi .l{color:var(--muted);font-size:12px}
+main{flex:1;display:grid;grid-template-columns:1fr 390px;gap:12px;padding:0 18px 14px;min-height:0}
+#map{border-radius:14px;border:1px solid var(--line);min-height:420px;position:relative;z-index:0}
+aside{background:var(--panel);border:1px solid var(--line);border-radius:14px;display:flex;flex-direction:column;min-height:0;overflow:hidden}
+aside h2{font-size:14px;margin:0;padding:12px 14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+.tabs{display:flex;gap:4px}
+.tabs button{padding:4px 9px;font-size:12px}
+.tabs button.on{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+#queue{overflow:auto;flex:1}
+.item{display:grid;grid-template-columns:28px 1fr auto;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line);cursor:pointer}
+.item:hover{background:var(--brand-2)}
+.rank{font:500 12px "JetBrains Mono",monospace;color:var(--muted);padding-top:2px}
+.name{font-weight:700}
+.meta{color:var(--muted);font-size:12px}
+.sev{display:inline-block;min-width:44px;text-align:center;font:600 11px "JetBrains Mono",monospace;padding:2px 6px;border-radius:6px;color:#fff}
+.status{font:500 10.5px "JetBrains Mono",monospace;text-transform:uppercase;padding:2px 6px;border-radius:5px;border:1px solid var(--line);color:var(--muted)}
+.status.verified{color:var(--red);border-color:var(--red)}
+.status.work_order{color:var(--blue);border-color:var(--blue)}
+.status.repaired{color:var(--green);border-color:var(--green)}
+.acts{display:flex;gap:4px;margin-top:6px;flex-wrap:wrap}
+.acts button{padding:3px 7px;font-size:11px}
+#feed{border-top:1px solid var(--line);max-height:150px;overflow:auto;font:12px "JetBrains Mono",monospace;padding:8px 14px;color:var(--muted)}
+#feed div{padding:2px 0}
+#feed b{color:var(--ink)}
+.legend{position:absolute;bottom:12px;left:12px;z-index:500;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:11.5px;color:var(--ink)}
+.legend .row{display:flex;align-items:center;gap:6px;margin:2px 0}
+.sw{width:18px;height:4px;border-radius:2px;display:inline-block}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+.notice{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:500;background:var(--ink);color:var(--panel);padding:6px 12px;border-radius:8px;font-size:12px;display:none}
+.leaflet-popup-content{font:13px "Plus Jakarta Sans",sans-serif}
+@media (max-width:960px){
+  .kpis{grid-template-columns:repeat(3,1fr);padding:10px 16px}
+  main{grid-template-columns:1fr;padding:0 16px 14px}
+  #map{height:56vh}
+  aside{max-height:none}
+  header{padding:10px 16px}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">
+    <svg width="30" height="30" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="var(--brand)"/><path d="M4 21c4 0 5-3 8-3s3.5 5 7 5 4-9 9-9" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round"/><circle cx="19" cy="23" r="2.2" fill="#f5b942"/></svg>
+    JalanSense <span class="sub">Estate Ops · City of Elmina pilot</span>
+  </div>
+  <span class="chip" id="mode">…</span>
+  <div class="spacer"></div>
+  <button id="btnSeed">Load 30-day demo</button>
+  <button id="btnSim" class="primary">▶ Simulate fleet drive</button>
+  <a class="btn" href="drive.html">📱 Phone drive mode</a>
+  <button id="btnReset" title="Clear all data">Reset</button>
+</header>
+
+<section class="kpis">
+  <div class="kpi"><div class="v" id="kOpen">0</div><div class="l">Open potholes</div></div>
+  <div class="kpi"><div class="v" id="kVer">0</div><div class="l">Verified by ≥2 vehicles</div></div>
+  <div class="kpi"><div class="v" id="kWo">0</div><div class="l">Work orders raised</div></div>
+  <div class="kpi"><div class="v" id="kFix">0</div><div class="l">Repaired</div></div>
+  <div class="kpi"><div class="v" id="kDays">–</div><div class="l">Avg days detect → repair</div></div>
+  <div class="kpi"><div class="v" id="kFilt">0</div><div class="l">Bumps / rough filtered out</div></div>
+</section>
+
+<main>
+  <div id="map">
+    <div class="notice" id="notice"></div>
+    <div class="legend">
+      <div style="font-weight:700;margin-bottom:3px">Road condition (fleet-scanned)</div>
+      <div class="row"><span class="sw" style="background:#2e8b57"></span>Good <span class="sw" style="background:#e3b23c;margin-left:6px"></span>Fair <span class="sw" style="background:#d9622b;margin-left:6px"></span>Poor</div>
+      <div style="font-weight:700;margin:5px 0 3px">Pothole severity</div>
+      <div class="row"><span class="dot" style="background:var(--s1)"></span>1 <span class="dot" style="background:var(--s2)"></span>2 <span class="dot" style="background:var(--s3)"></span>3 <span class="dot" style="background:var(--s4)"></span>4 <span class="dot" style="background:var(--s5)"></span>5 &nbsp;<span class="dot" style="background:#fff;border:2px solid var(--green)"></span>repaired</div>
+    </div>
+  </div>
+  <aside>
+    <h2>Repair priority queue
+      <span class="tabs"><button data-f="open" class="on">Open</button><button data-f="work_order">WO</button><button data-f="repaired">Fixed</button></span>
+    </h2>
+    <div id="queue"></div>
+    <div id="feed"><div>Live feed — waiting for events…</div></div>
+  </aside>
+</main>
+
+<script src="vendor/leaflet/leaflet.js"></script>
+<script src="js/engine.js"></script>
+<script>
+(async function(){
+  const JS = window.JalanSense;
+  const SEV = ["", "#9bb7a9", "#d9b84a", "#e39b1b", "#d9622b", "#b8261d"];
+  const store = await JS.connect();
+  await JS.loadModel("js/model.json");
+  document.getElementById("mode").textContent = store.mode === "api" ? "live API" : "demo · browser storage";
+
+  const map = L.map("map", { zoomControl: true }).setView(JS.ELMINA, 15);
+  L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
+    maxZoom: 19, attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
+  }).addTo(map);
+
+  const roadLayer = L.layerGroup().addTo(map);
+  const hotLayer = L.layerGroup().addTo(map);
+  const vehLayer = L.layerGroup().addTo(map);
+  let roads = [], realRoads = false, filter = "open", markers = {};
+
+  function notice(msg, ms){ const n = document.getElementById("notice"); n.textContent = msg; n.style.display = "block"; clearTimeout(n._t); n._t = setTimeout(()=>n.style.display="none", ms||3500); }
+  function feed(html){ const f = document.getElementById("feed"); const d = document.createElement("div"); d.innerHTML = new Date().toLocaleTimeString() + " " + html; f.prepend(d); while (f.children.length > 60) f.lastChild.remove(); }
+
+  function nearestRoadName(lat, lng){
+    let best = "", bd = 1e9;
+    for (const r of roads) { if (!r.name) continue; for (const p of r.pts) { const d = Math.abs(p[0]-lat) + Math.abs(p[1]-lng); if (d < bd) { bd = d; best = r.name; } } }
+    return bd < 0.0012 ? best : "";
+  }
+
+  function drawRoads(){
+    roadLayer.clearLayers();
+    const cond = JS.roadCondition(roads, 7);
+    roads.forEach((r, i) => {
+      const c = cond[i], col = c < 0.35 ? "#2e8b57" : c < 0.65 ? "#e3b23c" : "#d9622b";
+      L.polyline(r.pts, { color: col, weight: r.hw === "residential" ? 3 : 5, opacity: .75 }).addTo(roadLayer)
+        .bindTooltip((r.name || r.hw) + " — condition index " + (100 - Math.round(c*100)) + "/100", { sticky: true });
+    });
+  }
+
+  const ago = s => { const d = (Date.now()/1000 - s)/86400; return d < 1 ? Math.max(1, Math.round(d*24)) + " h ago" : Math.round(d) + " d ago"; };
+
+  async function refresh(){
+    const [hs, stats, evs] = await Promise.all([store.hotspots(), store.stats(), store.events()]);
+    const by = stats.hotspots_by_status || {};
+    kOpen.textContent = stats.open_hotspots;
+    kVer.textContent = by.verified || 0;
+    kWo.textContent = by.work_order || 0;
+    kFix.textContent = by.repaired || 0;
+    kDays.textContent = stats.avg_days_to_repair ? stats.avg_days_to_repair : "–";
+    kFilt.textContent = evs.filter(e => e.label !== "pothole").length;
+
+    hotLayer.clearLayers(); markers = {};
+    hs.forEach(h => {
+      if (h.status === "dismissed") return;
+      const fixed = h.status === "repaired";
+      const sev = Math.round(h.max_severity);
+      const m = L.circleMarker([h.lat, h.lng], {
+        radius: fixed ? 5 : 5 + Math.min(h.hits, 10) * 0.9, color: fixed ? "#2e8b57" : "#fff", weight: 2,
+        fillColor: fixed ? "#fff" : SEV[sev], fillOpacity: fixed ? 1 : .92
+      }).addTo(hotLayer);
+      const name = nearestRoadName(h.lat, h.lng) || "Unnamed road";
+      m.bindPopup(`<b>${name}</b><br>Severity <b>${sev}/5</b> · ${h.hits} hits from ${h.unique_devices} vehicle(s)<br>Status: ${h.status.replace("_"," ")}${h.reopened ? " · <b style='color:#c8372d'>reopened ×"+h.reopened+" (repair failed)</b>" : ""}<br>First seen ${ago(h.first_seen)} · last ${ago(h.last_seen)}<br><small>${h.lat.toFixed(5)}, ${h.lng.toFixed(5)}</small>`);
+      markers[h.id] = m;
+    });
+
+    const list = hs.filter(h => filter === "open" ? !["repaired","dismissed"].includes(h.status) : h.status === filter);
+    const q = document.getElementById("queue");
+    q.innerHTML = list.length ? "" : `<div class="meta" style="padding:14px">Nothing here yet. Load the demo or start a simulated drive.</div>`;
+    list.forEach((h, i) => {
+      const sev = Math.round(h.max_severity);
+      const name = nearestRoadName(h.lat, h.lng) || "Unnamed road";
+      const d = document.createElement("div"); d.className = "item";
+      d.innerHTML = `<div class="rank">#${i+1}</div>
+        <div><div class="name">${name}</div>
+          <div class="meta">${h.hits} hits · ${h.unique_devices} vehicle${h.unique_devices>1?"s":""} · last ${ago(h.last_seen)}${h.reopened ? " · <b style='color:var(--red)'>reopened</b>" : ""}</div>
+          <div class="acts">${h.status !== "work_order" && h.status !== "repaired" ? '<button data-a="work_order">Raise work order</button>' : ""}${h.status !== "repaired" ? '<button data-a="repaired">Mark repaired</button>' : ""}${h.status === "new" ? '<button data-a="dismissed">Dismiss</button>' : ""}</div></div>
+        <div style="text-align:right"><span class="sev" style="background:${SEV[sev]}">SEV ${sev}</span><br><span class="status ${h.status}">${h.status.replace("_"," ")}</span><div class="meta" style="margin-top:4px">P ${h.priority}</div></div>`;
+      d.addEventListener("click", ev => {
+        const a = ev.target.dataset && ev.target.dataset.a;
+        if (a) { ev.stopPropagation(); store.setStatus(h.id, a).then(() => { feed(`<b>WO</b> #${h.id} ${name} → ${a.replace("_"," ")}`); refresh(); }); return; }
+        map.setView([h.lat, h.lng], 18); markers[h.id] && markers[h.id].openPopup();
+      });
+      q.appendChild(d);
+    });
+  }
+
+  document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => {
+    document.querySelectorAll(".tabs button").forEach(x => x.classList.remove("on")); b.classList.add("on"); filter = b.dataset.f; refresh();
+  });
+
+  // ---------- demo + simulation
+  let plans = [];
+  async function seed(){
+    btnSeed.disabled = true; notice("Loading 30 days of fleet detections…");
+    await store.reset();
+    const { evs, plans: p } = JS.demoEvents(roads, 2026, 28); plans = p;
+    for (const e of evs) await store.ingest(e);
+    // repaired ones: mark repaired a few days after first detection
+    const hs = await store.hotspots();
+    for (const h of hs) {
+      const pl = plans.find(pl => JS.dist(pl.c[0], pl.c[1], h.lat, h.lng) < 15);
+      if (pl && pl.repaired) await store.setStatus(h.id, "repaired", Math.min(Date.now()/1000 - 3600, h.last_seen + 86400 * (1 + (h.id % 4))));
+      else if (h.status === "verified" && h.id % 5 === 0) await store.setStatus(h.id, "work_order");
+    }
+    btnSeed.disabled = false; feed(`<b>Loaded</b> ${evs.length} events from ${JS.FLEET.length} fleet vehicles`);
+    refresh();
+  }
+
+  let simRunning = false;
+  async function simulate(){
+    if (simRunning) return; simRunning = true; btnSim.textContent = "■ Driving…";
+    const r = JS.rng(Date.now() & 0xffff);
+    const big = roads.filter(x => x.pts.length > 6 && x.hw !== "residential");
+    const road = (big.length ? big : roads)[Math.floor(r() * (big.length || roads.length))];
+    const dev = JS.FLEET[Math.floor(r() * JS.FLEET.length)];
+    const icon = L.divIcon({ className: "", html: '<div style="width:16px;height:16px;border-radius:50%;background:#2f6db5;border:3px solid #fff;box-shadow:0 0 0 3px rgba(47,109,181,.35)"></div>', iconSize: [16,16], iconAnchor: [8,8] });
+    const car = L.marker(road.pts[0], { icon }).addTo(vehLayer);
+    map.fitBounds(L.latLngBounds(road.pts).pad(0.4));
+    feed(`<b>${dev}</b> started route on ${road.name || "estate road"}`);
+    // potholes to "hit": 2-3 new spots along the road
+    const spots = [1,2,3].map(() => JS.rng(Math.floor(r()*1e6))).map(rr => { const i = Math.floor(rr()*(road.pts.length-1)); return { i, done:false }; });
+    for (let i = 0; i < road.pts.length - 1; i++) {
+      const a = road.pts[i], b = road.pts[i+1], steps = Math.max(3, Math.round(JS.dist(a[0],a[1],b[0],b[1]) / 12));
+      for (let s = 0; s <= steps; s++) {
+        car.setLatLng([a[0] + (b[0]-a[0])*s/steps, a[1] + (b[1]-a[1])*s/steps]);
+        await new Promise(res => setTimeout(res, 40));
+      }
+      for (const sp of spots) if (!sp.done && sp.i === i) {
+        sp.done = true;
+        // simulate the IMU window, run the same edge model, then send
+        const speed = 25 + r()*30, kind = r() < 0.7 ? "pothole" : (r() < 0.5 ? "speed_bump" : "rough");
+        const w = syntheticWindow(kind, speed, r);
+        const f = JS.extract(w.az, w.ax, w.gx, speed, 50);
+        const label = JS.classify(f);
+        const p = car.getLatLng();
+        const res = await store.ingest({ device_id: dev, source: "fleet", lat: p.lat, lng: p.lng, speed_kmh: +speed.toFixed(1), label, confidence: .85, features: f });
+        if (label === "pothole") { feed(`<b>${dev}</b> POTHOLE sev ${res.severity} → hotspot #${res.hotspot_id}`); notice(`Pothole detected · severity ${res.severity}/5`); }
+        else feed(`${dev} ${label.replace("_"," ")} — filtered, not reported`);
+        refresh();
+      }
+    }
+    vehLayer.removeLayer(car); simRunning = false; btnSim.textContent = "▶ Simulate fleet drive";
+    feed(`<b>${dev}</b> route complete`);
+  }
+
+  function syntheticWindow(kind, speed, r){
+    const N = 100, az = [], ax = [], gx = [];
+    for (let i = 0; i < N; i++) { az.push((r()-.5)*.08); ax.push((r()-.5)*.04); gx.push((r()-.5)*2); }
+    const t0 = 40;
+    if (kind === "pothole") {
+      const amp = (0.5 + r()*0.6) * (0.5 + speed/40), d = 3;
+      for (let k = 0; k < d; k++) { az[t0+k] -= amp*Math.sin(Math.PI*k/d); az[t0+d+k] += amp*Math.sin(Math.PI*k/d); gx[t0+k] += 25*Math.sin(Math.PI*k/d); }
+      for (let k = 0; k < 20; k++) az[t0+2*d+k] += amp*0.3*Math.exp(-k/6)*Math.sin(k*1.2);
+    } else if (kind === "speed_bump") {
+      const d = 14, amp = 0.5;
+      for (let k = 0; k < d; k++) az[t0+k] += amp*Math.sin(Math.PI*k/d);
+      for (let k = 0; k < 40; k++) az[t0+d+k] += amp*0.4*Math.exp(-k/20)*Math.sin(k*0.18);
+    } else {
+      for (let i = 0; i < N; i++) { az[i] += (r()-.5)*0.6; gx[i] += (r()-.5)*10; }
+    }
+    return { az, ax, gx };
+  }
+
+  btnSeed.onclick = seed;
+  btnSim.onclick = simulate;
+  btnReset.onclick = async () => { await store.reset(); feed("<b>Reset</b>"); refresh(); };
+  window.addEventListener("storage", () => { store.reload(); refresh(); }); // phone drive mode in another tab
+
+  notice("Loading Elmina road network…", 6000);
+  const rr = await JS.fetchRoads(); roads = rr.roads; realRoads = rr.real;
+  drawRoads();
+  if (!realRoads) feed("Road data offline — using approximate road lines");
+  const s = await store.stats();
+  if (!s.events) await seed(); else refresh();
+  setInterval(() => { if (!simRunning) { store.reload(); refresh(); } }, 8000);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>JalanSense Drive Mode</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0e141b;--panel:#151d26;--ink:#e7ecf1;--muted:#93a0ad;--line:#26313d;--brand:#3fb39a;--red:#e0503f;--amber:#f0a83a}
+:root[data-theme="light"]{--bg:#f3f1ec;--panel:#fff;--ink:#14202e;--muted:#5f6b78;--line:#e2ded5;--brand:#0f5c4c}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]){--bg:#f3f1ec;--panel:#fff;--ink:#14202e;--muted:#5f6b78;--line:#e2ded5;--brand:#0f5c4c}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 "Plus Jakarta Sans",system-ui,sans-serif;padding:16px;max-width:560px;margin:auto}
+h1{font-size:20px;margin:4px 0 2px;font-weight:800}
+p.s{color:var(--muted);margin:0 0 14px;font-size:13px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
+button{font:700 16px "Plus Jakarta Sans",sans-serif;width:100%;padding:16px;border-radius:12px;border:0;background:var(--brand);color:#fff;cursor:pointer}
+button.ghost{background:transparent;color:var(--ink);border:1px solid var(--line);font-size:14px;padding:11px}
+.row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}
+.v{font-size:26px;font-weight:800}
+.l{font-size:11.5px;color:var(--muted)}
+canvas{width:100%;height:140px;display:block}
+#log{font:12.5px "JetBrains Mono",monospace;max-height:220px;overflow:auto}
+#log div{padding:5px 0;border-bottom:1px solid var(--line)}
+.pot{color:var(--red);font-weight:700}
+.flash{animation:fl .6s}
+@keyframes fl{0%{background:var(--red)}100%{background:var(--panel)}}
+a{color:var(--brand)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+</style>
+</head>
+<body>
+<a href="index.html">← Estate dashboard</a>
+<h1>Drive mode</h1>
+<p class="s">Turns any phone into a JalanSense sensor. Mount the phone firmly (dashboard holder), start, and drive. Detections appear on the estate dashboard.</p>
+
+<div class="card"><button id="start">Start sensing</button>
+  <div class="two"><button class="ghost" id="simP">Test: pothole</button><button class="ghost" id="simB">Test: speed bump</button></div>
+</div>
+
+<div class="card" id="statsCard">
+  <div class="row">
+    <div><div class="v" id="nPot">0</div><div class="l">Potholes</div></div>
+    <div><div class="v" id="nFilt">0</div><div class="l">Bumps / rough filtered</div></div>
+    <div><div class="v" id="spd">–</div><div class="l">km/h</div></div>
+  </div>
+</div>
+
+<div class="card"><div class="l" style="margin-bottom:6px">Vertical acceleration (g) · threshold ±0.35 g</div><canvas id="cv" width="520" height="140"></canvas></div>
+<div class="card"><div class="l" style="margin-bottom:4px">Detections · <span id="mode">…</span> · <span id="gps">GPS off</span></div><div id="log"></div></div>
+
+<script src="js/engine.js"></script>
+<script>
+(async function(){
+  const JS = window.JalanSense;
+  const store = await JS.connect();
+  await JS.loadModel("js/model.json");
+  mode.textContent = store.mode === "api" ? "sending to API" : "saved in this browser";
+  const devId = (() => { try { let d = localStorage.getItem("js_dev"); if (!d) { d = "phone-" + Math.random().toString(36).slice(2,6); localStorage.setItem("js_dev", d); } return d; } catch(e) { return "phone-demo"; } })();
+
+  // ring buffer of samples
+  const BUF = 160, az = [], ax = [], gx = [], ts = [];
+  let g = null, pos = null, speed = null, lastTrig = 0, running = false;
+  const cv = document.getElementById("cv"), ctx = cv.getContext("2d");
+
+  function onMotion(e){
+    const a = e.accelerationIncludingGravity; if (!a || a.x == null) return;
+    const v = [a.x, a.y, a.z];
+    if (!g) g = v.slice();
+    for (let i = 0; i < 3; i++) g[i] = g[i] * 0.97 + v[i] * 0.03;          // gravity estimate
+    const gn = Math.hypot(...g) || 9.81, u = g.map(x => x / gn);
+    const lin = v.map((x, i) => x - g[i]);
+    const vert = (lin[0]*u[0] + lin[1]*u[1] + lin[2]*u[2]) / 9.81;
+    const hz = Math.hypot(lin[0] - vert*9.81*u[0], lin[1] - vert*9.81*u[1], lin[2] - vert*9.81*u[2]) / 9.81;
+    const rr = e.rotationRate ? (e.rotationRate.beta || 0) : 0;
+    push(vert, hz, rr, performance.now());
+  }
+
+  function push(v, h, r, t){
+    az.push(v); ax.push(h); gx.push(r); ts.push(t);
+    if (az.length > BUF) { az.shift(); ax.shift(); gx.shift(); ts.shift(); }
+    if (Math.abs(v) > 0.35 && t - lastTrig > 2500) { lastTrig = t; setTimeout(() => evaluate(), 1000); }
+  }
+
+  async function evaluate(forced){
+    const n = Math.min(az.length, 100);
+    const A = az.slice(-n), X = ax.slice(-n), G = gx.slice(-n), T = ts.slice(-n);
+    const fs = n > 1 ? (n - 1) / ((T[n-1] - T[0]) / 1000) : 50;
+    const sp = forced ? forced.speed : (speed != null ? speed : 30);
+    const f = JS.extract(A, X, G, sp, fs);
+    const label = JS.classify(f);
+    const lat = pos ? pos.latitude : JS.ELMINA[0] + (Math.random()-.5)*0.01;
+    const lng = pos ? pos.longitude : JS.ELMINA[1] + (Math.random()-.5)*0.01;
+    const res = await store.ingest({ device_id: devId, source: "phone", lat, lng, speed_kmh: +sp.toFixed(1), label, confidence: .8, features: f });
+    const d = document.createElement("div");
+    const time = new Date().toLocaleTimeString();
+    if (label === "pothole") {
+      d.innerHTML = `${time} <span class="pot">POTHOLE</span> sev ${res.severity}/5 · ptp ${f.z_ptp.toFixed(2)} g`;
+      nPot.textContent = +nPot.textContent + 1;
+      statsCard.classList.remove("flash"); void statsCard.offsetWidth; statsCard.classList.add("flash");
+      if (navigator.vibrate) navigator.vibrate(120);
+    } else {
+      d.textContent = `${time} ${label.replace("_"," ")} — filtered`;
+      nFilt.textContent = +nFilt.textContent + 1;
+    }
+    log.prepend(d);
+  }
+
+  function draw(){
+    const w = cv.width, h = cv.height; ctx.clearRect(0,0,w,h);
+    const css = getComputedStyle(document.documentElement);
+    ctx.strokeStyle = css.getPropertyValue("--line"); ctx.lineWidth = 1;
+    [0.35, -0.35, 0].forEach(y => { ctx.beginPath(); const yy = h/2 - y*h/3; ctx.setLineDash(y ? [4,4] : []); ctx.moveTo(0,yy); ctx.lineTo(w,yy); ctx.stroke(); });
+    ctx.setLineDash([]); ctx.strokeStyle = css.getPropertyValue("--brand"); ctx.lineWidth = 2; ctx.beginPath();
+    az.forEach((v, i) => { const x = i / BUF * w, y = h/2 - Math.max(-1.5, Math.min(1.5, v)) * h/3; i ? ctx.lineTo(x,y) : ctx.moveTo(x,y); });
+    ctx.stroke(); requestAnimationFrame(draw);
+  }
+  draw();
+
+  // idle noise so the chart is alive before starting
+  const idle = setInterval(() => { if (!running) push((Math.random()-.5)*0.04, 0, 0, performance.now()); }, 40);
+
+  start.onclick = async () => {
+    if (running) return;
+    try {
+      if (typeof DeviceMotionEvent !== "undefined" && DeviceMotionEvent.requestPermission) {
+        const p = await DeviceMotionEvent.requestPermission(); if (p !== "granted") throw new Error("Motion permission denied");
+      }
+      window.addEventListener("devicemotion", onMotion);
+      running = true; start.textContent = "Sensing… drive safely";
+      if (navigator.geolocation) navigator.geolocation.watchPosition(p => {
+        pos = p.coords; speed = p.coords.speed != null ? p.coords.speed * 3.6 : speed;
+        gps.textContent = `GPS ±${Math.round(p.coords.accuracy)} m`; spd.textContent = speed != null ? Math.round(speed) : "–";
+      }, () => gps.textContent = "GPS unavailable", { enableHighAccuracy: true });
+    } catch (e) { alert(e.message); }
+  };
+
+  // Desk-demo buttons: inject a realistic IMU trace, then run the real pipeline on it
+  function inject(kind){
+    const sp = kind === "pothole" ? 40 : 18, d = kind === "pothole" ? 3 : 14, amp = kind === "pothole" ? 1.1 : 0.5;
+    const seq = [];
+    for (let i = 0; i < 100; i++) seq.push((Math.random()-.5)*0.06);
+    for (let k = 0; k < d; k++) { seq[45+k] += (kind === "pothole" ? -amp : amp) * Math.sin(Math.PI*k/d); if (kind === "pothole") seq[45+d+k] += amp*Math.sin(Math.PI*k/d); }
+    if (kind === "pothole") for (let k = 0; k < 20; k++) seq[45+2*d+k] += amp*0.3*Math.exp(-k/6)*Math.sin(k*1.2);
+    else for (let k = 0; k < 35; k++) seq[45+d+k] += amp*0.4*Math.exp(-k/20)*Math.sin(k*0.18);
+    const t = performance.now() - seq.length * 20;
+    lastTrig = performance.now();
+    seq.forEach((v, i) => push(v, Math.abs(v)*0.2, kind === "pothole" && i>44 && i<52 ? 25*Math.sin((i-45)/7*Math.PI) : (Math.random()-.5)*2, t + i*20));
+    setTimeout(() => evaluate({ speed: sp }), 50);
+  }
+  simP.onclick = () => inject("pothole");
+  simB.onclick = () => inject("speed_bump");
+})();
+</script>
+</body>
+</html>

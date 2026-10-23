@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+.venv/
+backend/*.db
+firmware/jalansense_node/config.h
+ml/data/
+.DS_Store
+.vscode/
+HANDOFF.md

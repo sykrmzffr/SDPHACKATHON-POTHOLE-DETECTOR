@@ -1,0 +1,127 @@
+{
+  "edge_tree": {
+    "accuracy": 0.974,
+    "pothole_precision": 0.9343,
+    "pothole_recall": 0.9536,
+    "speed_bump_recall": 0.9474,
+    "labels": [
+      "pothole",
+      "rough",
+      "smooth",
+      "speed_bump"
+    ],
+    "confusion_matrix": [
+      [
+        185,
+        3,
+        5,
+        1
+      ],
+      [
+        5,
+        252,
+        0,
+        1
+      ],
+      [
+        3,
+        0,
+        393,
+        0
+      ],
+      [
+        5,
+        0,
+        3,
+        144
+      ]
+    ]
+  },
+  "cloud_forest": {
+    "accuracy": 0.993,
+    "pothole_precision": 0.9845,
+    "pothole_recall": 0.9794,
+    "speed_bump_recall": 1.0,
+    "labels": [
+      "pothole",
+      "rough",
+      "smooth",
+      "speed_bump"
+    ],
+    "confusion_matrix": [
+      [
+        190,
+        0,
+        4,
+        0
+      ],
+      [
+        1,
+        257,
+        0,
+        0
+      ],
+      [
+        2,
+        0,
+        394,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        152
+      ]
+    ]
+  },
+  "feature_importance": [
+    [
+      "z_max",
+      0.1703
+    ],
+    [
+      "z_ptp",
+      0.1306
+    ],
+    [
+      "roll_std",
+      0.1207
+    ],
+    [
+      "z_min",
+      0.1108
+    ],
+    [
+      "z_std",
+      0.0941
+    ],
+    [
+      "x_std",
+      0.0937
+    ],
+    [
+      "n_peaks",
+      0.082
+    ],
+    [
+      "z_ptp_per_speed",
+      0.0671
+    ],
+    [
+      "jerk_max",
+      0.0564
+    ],
+    [
+      "peak_width_s",
+      0.0496
+    ],
+    [
+      "speed_kmh",
+      0.0245
+    ]
+  ],
+  "n_train": 3000,
+  "n_test": 1000,
+  "data": "synthetic.csv"
+}
