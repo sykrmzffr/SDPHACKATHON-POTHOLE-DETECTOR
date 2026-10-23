@@ -39,6 +39,7 @@ JalanSense turns the vehicles a township already runs into road inspectors: shut
 | `backend/` | FastAPI and SQLite: ingest, clustering, priority, work-order status | Zeeq |
 | `web/` | Estate dashboard (`index.html`) and phone drive mode (`drive.html`) | Zeeq |
 | `docs/` | Submission text, video script, survey, pilot plan | Faris |
+| `survey/` | Google Form builder script (`create_form.gs`) and MOCK response generator | Faris |
 
 ## Run it
 
@@ -82,3 +83,9 @@ These numbers come from **physics-based synthetic data** (`ml/generate_data.py`)
 | **Total** | **≈ RM 70–110 per vehicle** |
 
 A production node would add a 4G/LTE-M module, or use the vehicle's existing telematics, instead of Wi-Fi with store-and-forward.
+
+## Resident survey
+
+- `survey/create_form.gs`: paste into script.google.com and run `createSurvey`. It creates the Google Form and its response sheet in your Drive and logs the share link.
+- `web/survey.html`: survey insights dashboard. It opens with **mock** data (`web/data/survey_mock.csv`, 150 invented responses, clearly bannered). Use **Load Google Forms CSV** to view real responses (Sheets → File → Download → CSV).
+- Never quote the mock numbers as findings.

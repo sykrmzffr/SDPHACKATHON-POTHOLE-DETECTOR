@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JalanSense Survey Insights</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f3f1ec; --panel:#ffffff; --ink:#14202e; --ink-2:#3f4c59; --muted:#5f6b78; --line:#e2ded5; --grid:#ece8df;
+  --brand:#0f5c4c; --brand-2:#e8f2ef; --bar:#2a7f6b; --bar-hi:#0f5c4c; --warn-bg:#fff3d6; --warn-ink:#7a4b00; --warn-line:#e9c46a;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0e141b; --panel:#151d26; --ink:#e7ecf1; --ink-2:#c3ccd5; --muted:#93a0ad; --line:#26313d; --grid:#1f2934;
+  --brand:#3fb39a; --brand-2:#14302a; --bar:#3a9c86; --bar-hi:#5cc4ab; --warn-bg:#3a2c0b; --warn-ink:#f5d58a; --warn-line:#7a5a12;
+}}
+:root[data-theme="dark"]{ --bg:#0e141b; --panel:#151d26; --ink:#e7ecf1; --ink-2:#c3ccd5; --muted:#93a0ad; --line:#26313d; --grid:#1f2934;
+  --brand:#3fb39a; --brand-2:#14302a; --bar:#3a9c86; --bar-hi:#5cc4ab; --warn-bg:#3a2c0b; --warn-ink:#f5d58a; --warn-line:#7a5a12; }
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 "Plus Jakarta Sans",system-ui,sans-serif}
+header{display:flex;align-items:center;gap:14px;padding:12px 18px;background:var(--panel);border-bottom:1px solid var(--line);flex-wrap:wrap}
+.logo{font-weight:800;font-size:17px}
+.sub{color:var(--muted);font-weight:500;font-size:13px}
+.spacer{flex:1}
+a.btn,label.btn,select{font:600 13px "Plus Jakarta Sans",sans-serif;border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:7px 12px;border-radius:8px;cursor:pointer;text-decoration:none}
+label.btn.primary{background:var(--brand);color:#fff;border-color:var(--brand)}
+input[type=file]{display:none}
+.wrap{max-width:1280px;margin:0 auto;padding:14px 18px 40px}
+.banner{display:none;margin-bottom:12px;padding:10px 14px;border-radius:10px;background:var(--warn-bg);color:var(--warn-ink);border:1px solid var(--warn-line);font-weight:600}
+.filters{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px;color:var(--muted);font-size:13px}
+.kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:12px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.kpi .v{font-size:26px;font-weight:800;letter-spacing:-.5px;font-variant-numeric:tabular-nums}
+.kpi .l{color:var(--muted);font-size:12px}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px;min-width:0}
+.card h3{margin:0 0 2px;font-size:14px}
+.card .q{color:var(--muted);font-size:12px;margin-bottom:10px}
+.bars{display:flex;flex-direction:column;gap:7px}
+.row{display:grid;grid-template-columns:minmax(120px,38%) 1fr 64px;gap:10px;align-items:center;position:relative}
+.row .lab{font-size:12.5px;color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .track{height:14px;background:var(--grid);border-radius:4px;overflow:hidden}
+.row .fill{height:100%;background:var(--bar);border-radius:0 4px 4px 0;transition:width .4s}
+.row:hover .fill{background:var(--bar-hi)}
+.row .val{font:500 12px "JetBrains Mono",monospace;color:var(--ink);text-align:right;font-variant-numeric:tabular-nums}
+.row:hover::after{content:attr(data-tip);position:absolute;left:38%;top:-30px;background:var(--ink);color:var(--panel);font-size:12px;padding:4px 8px;border-radius:6px;white-space:nowrap;z-index:5;pointer-events:none}
+.cols{display:flex;align-items:flex-end;gap:10px;height:150px;padding-top:6px}
+.col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end;position:relative}
+.col .bar{width:100%;max-width:56px;background:var(--bar);border-radius:4px 4px 0 0}
+.col:hover .bar{background:var(--bar-hi)}
+.col .n{font:500 12px "JetBrains Mono",monospace}
+.col .x{font-size:12px;color:var(--muted)}
+.col:hover::after{content:attr(data-tip);position:absolute;top:-6px;background:var(--ink);color:var(--panel);font-size:12px;padding:4px 8px;border-radius:6px;white-space:nowrap;z-index:5}
+.headlines{background:var(--brand-2);border:1px solid var(--line);border-radius:14px;padding:14px 18px;margin-bottom:12px}
+.headlines h3{margin:0 0 6px;font-size:14px;color:var(--brand)}
+.headlines li{margin:4px 0}
+.list{max-height:260px;overflow:auto;font-size:13px}
+.list div{padding:7px 0;border-bottom:1px solid var(--line)}
+.list .m{color:var(--muted);font-size:11.5px}
+.full{grid-column:1 / -1}
+details{margin-top:10px;font-size:12px;color:var(--muted)}
+table{border-collapse:collapse;font-size:12px;width:100%}
+td,th{border-bottom:1px solid var(--line);padding:4px 6px;text-align:left}
+@media (max-width:900px){ .kpis{grid-template-columns:repeat(2,1fr)} .grid{grid-template-columns:1fr} .wrap{padding:12px 16px 32px} header{padding:10px 16px} }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">JalanSense <span class="sub">Resident road survey · insights</span></div>
+  <div class="spacer"></div>
+  <a class="btn" href="index.html">← Estate dashboard</a>
+  <label class="btn primary">Load Google Forms CSV<input type="file" id="file" accept=".csv,text/csv"></label>
+</header>
+<div class="wrap">
+  <div class="banner" id="banner">⚠ MOCK DATA: these responses are invented to preview the dashboard. Do not quote these numbers. Load your real Google Forms export to see real results.</div>
+  <div class="filters">
+    <span>Source: <b id="src">…</b></span>
+    <span>Township <select id="fTown"></select></span>
+    <span>Travels by <select id="fMode"></select></span>
+  </div>
+
+  <section class="kpis">
+    <div class="kpi"><div class="v" id="kN">–</div><div class="l">Responses</div></div>
+    <div class="kpi"><div class="v" id="kRate">–</div><div class="l">Avg road rating (1–5)</div></div>
+    <div class="kpi"><div class="v" id="kWeekly">–</div><div class="l">See potholes weekly or daily</div></div>
+    <div class="kpi"><div class="v" id="kHarm">–</div><div class="l">Vehicle damage or near-miss</div></div>
+    <div class="kpi"><div class="v" id="kNoRep">–</div><div class="l">Didn’t report: no channel / no faith</div></div>
+    <div class="kpi"><div class="v" id="kSupport">–</div><div class="l">Support fleet sensors (4–5)</div></div>
+  </section>
+
+  <div class="headlines"><h3>Slide-ready headlines (update automatically)</h3><ul id="heads"></ul></div>
+
+  <div class="grid" id="grid"></div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  const C = { // column keys (substring match against CSV headers)
+    town:"Township", area:"Area or precinct", conn:"connection to the township", mode:"Main way you travel",
+    age:"Age group", rating:"Overall road condition", freq:"How often do you notice", problems:"Which problems",
+    impacts:"caused you any of these", cost:"spent on vehicle repairs", spot:"worst spot", reported:"ever reported",
+    fix:"how long until it was repaired", sat:"Satisfaction with how", support:"Support for sensors",
+    app:"pothole-detecting app", concerns:"concerns about the phone app", comments:"other comments", ts:"Timestamp"
+  };
+  const OPTS = {
+    problems:["Potholes","Uneven or badly patched surface","Sunken drain or manhole covers","Cracked surface","Damaged speed bumps","Faded road markings","Waterlogging after rain"],
+    impacts:["Tyre or rim damage","Suspension or alignment problem","Near-accident or fall","Had to swerve suddenly","Had to slow down a lot","None of these"],
+    concerns:["Battery use","Location privacy","Mobile data use","I do not drive","No concerns"],
+    freq:["Daily","Weekly","Monthly","Rarely","Never"],
+    cost:["RM 0","Below RM 100","RM 100 - 300","RM 300 - 1,000","Above RM 1,000","Not sure"],
+    fix:["Less than 1 week","1 - 4 weeks","More than 1 month","Never repaired"],
+    app:["Yes","Maybe","No"]
+  };
+  let all = [], isMock = true;
+
+  // ------------------------------------------------ CSV
+  function parseCSV(text){
+    const rows = []; let row = [], f = "", q = false;
+    for (let i = 0; i < text.length; i++){
+      const c = text[i];
+      if (q){ if (c === '"'){ if (text[i+1] === '"'){ f += '"'; i++; } else q = false; } else f += c; }
+      else if (c === '"') q = true;
+      else if (c === ","){ row.push(f); f = ""; }
+      else if (c === "\n" || c === "\r"){ if (c === "\r" && text[i+1] === "\n") i++; row.push(f); rows.push(row); row = []; f = ""; }
+      else f += c;
+    }
+    if (f.length || row.length){ row.push(f); rows.push(row); }
+    const head = rows.shift().map(h => h.trim());
+    const idx = {}; for (const k in C){ idx[k] = head.findIndex(h => h.toLowerCase().includes(C[k].toLowerCase())); }
+    return rows.filter(r => r.some(x => x.trim())).map(r => { const o = {}; for (const k in idx) o[k] = idx[k] >= 0 ? (r[idx[k]] || "").trim() : ""; return o; });
+  }
+  function multi(val, opts){ // Google Forms joins checkbox answers with ", "
+    if (!val) return [];
+    const hit = opts.filter(o => val.includes(o));
+    let rest = val; hit.forEach(o => rest = rest.replace(o, ""));
+    if (rest.replace(/[,\s]/g, "").length) hit.push("Other");
+    return hit;
+  }
+
+  // ------------------------------------------------ rendering helpers
+  const pct = (a, b) => b ? Math.round(a / b * 100) : 0;
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  function count(rows, key, opts, isMulti){
+    const m = new Map(); (opts || []).forEach(o => m.set(o, 0));
+    rows.forEach(r => (isMulti ? multi(r[key], opts) : [r[key]]).forEach(v => { if (v) m.set(v, (m.get(v) || 0) + 1); }));
+    return [...m.entries()];
+  }
+  function barCard(title, q, entries, base, opt){
+    opt = opt || {};
+    let e = entries.filter(x => opt.keepZero || x[1] > 0);
+    if (opt.sort) e.sort((a, b) => b[1] - a[1]);
+    const max = Math.max(1, ...e.map(x => x[1]));
+    const rows = e.map(([k, v]) => { const p = pct(v, base);
+      return `<div class="row" data-tip="${esc(k)}: ${v} of ${base} (${p}%)"><div class="lab" title="${esc(k)}">${esc(k)}</div><div class="track"><div class="fill" style="width:${v / max * 100}%"></div></div><div class="val">${opt.raw ? v : p + "%"}</div></div>`; }).join("");
+    return `<div class="card ${opt.full ? "full" : ""}"><h3>${title}</h3><div class="q">${q}</div><div class="bars">${rows || '<span class="q">No answers yet</span>'}</div></div>`;
+  }
+  function colCard(title, q, entries, base){
+    const max = Math.max(1, ...entries.map(x => x[1]));
+    const cols = entries.map(([k, v]) => `<div class="col" data-tip="${esc(k)}: ${v} (${pct(v, base)}%)"><span class="n">${v}</span><div class="bar" style="height:${v / max * 110}px"></div><span class="x">${esc(k)}</span></div>`).join("");
+    return `<div class="card"><h3>${title}</h3><div class="q">${q}</div><div class="cols">${cols}</div></div>`;
+  }
+
+  function render(){
+    const t = fTown.value, md = fMode.value;
+    const rows = all.filter(r => (!t || r.town === t) && (!md || r.mode === md));
+    const n = rows.length;
+    const harmSet = ["Tyre or rim damage", "Suspension or alignment problem", "Near-accident or fall"];
+    const harmed = rows.filter(r => multi(r.impacts, OPTS.impacts).some(x => harmSet.includes(x))).length;
+    const weekly = rows.filter(r => r.freq === "Daily" || r.freq === "Weekly").length;
+    const noRep = rows.filter(r => /did not know|did not think/i.test(r.reported)).length;
+    const supp = rows.filter(r => +r.support >= 4).length;
+    const ratings = rows.map(r => +r.rating).filter(x => x >= 1);
+    const avg = ratings.length ? (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1) : "–";
+
+    kN.textContent = n; kRate.textContent = avg; kWeekly.textContent = pct(weekly, n) + "%";
+    kHarm.textContent = pct(harmed, n) + "%"; kNoRep.textContent = pct(noRep, n) + "%"; kSupport.textContent = pct(supp, n) + "%";
+
+    const reporters = rows.filter(r => /^Yes/.test(r.reported));
+    const slow = reporters.filter(r => /More than 1 month|Never repaired/.test(r.fix)).length;
+    const appYes = rows.filter(r => r.app === "Yes").length, appMaybe = rows.filter(r => r.app === "Maybe").length;
+    const scope = (t || "all townships") + (md ? ", " + md.toLowerCase() + " users" : "");
+    heads.innerHTML = [
+      `<b>${pct(weekly, n)}%</b> of respondents see potholes or uneven road at least weekly (n = ${n}, ${scope}).`,
+      `<b>${pct(harmed, n)}%</b> had vehicle damage or a near-miss caused by bad roads in the last 12 months.`,
+      `<b>${pct(noRep, n)}%</b> never reported because they didn’t know where, or didn’t think it would be fixed.`,
+      reporters.length ? `Of those who reported, <b>${pct(slow, reporters.length)}%</b> waited over a month or saw no repair.` : "",
+      `<b>${pct(supp, n)}%</b> support sensors on township vehicles; <b>${pct(appYes + appMaybe, n)}%</b> would or might run the phone app.`
+    ].filter(Boolean).map(s => `<li>${s}${isMock ? ' <i style="color:var(--warn-ink)">(mock)</i>' : ""}</li>`).join("");
+
+    // near-miss rate by travel mode
+    const modes = [...new Set(all.map(r => r.mode).filter(Boolean))];
+    const nm = modes.map(m => { const g = rows.filter(r => r.mode === m); return [m + " (n=" + g.length + ")", g.filter(r => /Near-accident/.test(r.impacts)).length, g.length]; }).filter(x => x[2] > 0);
+    const nmMax = Math.max(1, ...nm.map(x => x[1] / x[2]));
+    const nmCard = `<div class="card"><h3>Near-accident or fall, by how people travel</h3><div class="q">Share of each group reporting a near-accident or fall</div><div class="bars">${
+      nm.sort((a, b) => b[1] / b[2] - a[1] / a[2]).map(([k, v, g]) => `<div class="row" data-tip="${esc(k)}: ${v} of ${g}"><div class="lab">${esc(k)}</div><div class="track"><div class="fill" style="width:${(v / g) / nmMax * 100}%"></div></div><div class="val">${pct(v, g)}%</div></div>`).join("")}</div></div>`;
+
+    const spots = rows.filter(r => r.spot).map(r => `<div>${esc(r.spot)}<div class="m">${esc(r.town)}${r.area ? " · " + esc(r.area) : ""} · ${esc(r.mode)}</div></div>`).join("");
+    const comments = rows.filter(r => r.comments).map(r => `<div>“${esc(r.comments)}”<div class="m">${esc(r.town)} · ${esc(r.conn)} · ${esc(r.age)}</div></div>`).join("");
+
+    grid.innerHTML = [
+      barCard("Problems residents see", "Which problems have you seen? (multi-select)", count(rows, "problems", OPTS.problems, true), n, { sort: true }),
+      barCard("Harm in the last 12 months", "Has a bad road caused you any of these? (multi-select)", count(rows, "impacts", OPTS.impacts, true), n, { sort: true }),
+      colCard("Overall road rating", "1 = very poor, 5 = excellent", count(rows, "rating", ["1","2","3","4","5"]), n),
+      barCard("How often potholes are noticed", "Single choice", count(rows, "freq", OPTS.freq), n, { keepZero: true }),
+      nmCard,
+      barCard("Repair spending", "Vehicle repairs caused by bad roads, last 12 months", count(rows, "cost", OPTS.cost), n, { keepZero: true }),
+      barCard("Reporting behaviour", "Have you ever reported a road problem?", count(rows, "reported"), n, { sort: true }),
+      barCard("Time to repair (those who reported)", "Share of reporters", count(reporters, "fix", OPTS.fix), reporters.length, { keepZero: true }),
+      colCard("Support for sensors on township vehicles", "1 = do not support, 5 = strongly support", count(rows, "support", ["1","2","3","4","5"]), n),
+      barCard("Would run the phone app", "While driving", count(rows, "app", OPTS.app), n, { keepZero: true }),
+      barCard("Concerns about the phone app", "Multi-select", count(rows, "concerns", OPTS.concerns, true), n, { sort: true }),
+      barCard("Responses by township", "Count of responses", count(rows, "town"), n, { sort: true, raw: true }),
+      `<div class="card"><h3>Worst spots named</h3><div class="q">${rows.filter(r => r.spot).length} mentions</div><div class="list">${spots || '<span class="q">None</span>'}</div></div>`,
+      `<div class="card"><h3>Comments</h3><div class="q">${rows.filter(r => r.comments).length} comments</div><div class="list">${comments || '<span class="q">None</span>'}</div></div>`,
+      `<div class="card full"><details><summary>Data table (first 50 rows)</summary><table><tr><th>Township</th><th>Mode</th><th>Rating</th><th>Frequency</th><th>Reported</th><th>Support</th><th>App</th></tr>${
+        rows.slice(0, 50).map(r => `<tr><td>${esc(r.town)}</td><td>${esc(r.mode)}</td><td>${esc(r.rating)}</td><td>${esc(r.freq)}</td><td>${esc(r.reported)}</td><td>${esc(r.support)}</td><td>${esc(r.app)}</td></tr>`).join("")}</table></details></div>`
+    ].join("");
+  }
+
+  function load(rows, label, mock){
+    all = rows; isMock = mock;
+    src.textContent = label;
+    banner.style.display = mock ? "block" : "none";
+    const towns = [...new Set(all.map(r => r.town).filter(Boolean))].sort();
+    const modes = [...new Set(all.map(r => r.mode).filter(Boolean))].sort();
+    fTown.innerHTML = `<option value="">All</option>` + towns.map(x => `<option>${esc(x)}</option>`).join("");
+    fMode.innerHTML = `<option value="">All</option>` + modes.map(x => `<option>${esc(x)}</option>`).join("");
+    render();
+  }
+
+  fTown.onchange = render; fMode.onchange = render;
+  file.onchange = e => {
+    const f = e.target.files[0]; if (!f) return;
+    const rd = new FileReader();
+    rd.onload = () => { try { load(parseCSV(rd.result), f.name + " (real responses)", /mock/i.test(f.name)); } catch (err) { alert("Could not read that CSV: " + err.message); } };
+    rd.readAsText(f);
+  };
+  fetch("data/survey_mock.csv").then(r => r.text()).then(t => load(parseCSV(t), "survey_mock.csv (150 invented responses)", true))
+    .catch(() => { src.textContent = "no data: load a CSV"; });
+})();
+</script>
+</body>
+</html>
